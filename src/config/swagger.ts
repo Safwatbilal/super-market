@@ -210,18 +210,70 @@ console.log('🔍 Swagger API paths:', options.apis);
 console.log('📋 Swagger specs paths:', Object.keys((specs as any).paths || {}));
 
 export const setupSwagger = (app: Application): void => {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
-    customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'Auth API Documentation',
-    swaggerOptions: {
-      persistAuthorization: true,
-      displayRequestDuration: true
-    }
-  }));
-
+  // Use CDN assets for Vercel serverless compatibility
+  const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL_URL;
+  
   const baseUrl = process.env.VERCEL_URL 
     ? `https://${process.env.VERCEL_URL}` 
     : process.env.BASE_URL || 'http://localhost:5000';
+
+  if (isVercel) {
+    // For Vercel, serve Swagger UI using CDN assets to avoid static file serving issues
+    app.get('/api-docs', (req, res) => {
+      const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Auth API Documentation</title>
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
+  <style>
+    .swagger-ui .topbar { display: none }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js"></script>
+  <script>
+    window.onload = function() {
+      const ui = SwaggerUIBundle({
+        url: '${baseUrl}/api-docs/swagger.json',
+        dom_id: '#swagger-ui',
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        layout: "StandaloneLayout",
+        deepLinking: true,
+        persistAuthorization: true,
+        displayRequestDuration: true
+      });
+    };
+  </script>
+</body>
+</html>
+      `;
+      res.send(html);
+    });
+
+    // Serve the Swagger JSON spec
+    app.get('/api-docs/swagger.json', (req, res) => {
+      res.setHeader('Content-Type', 'application/json');
+      res.send(specs);
+    });
+  } else {
+    // For local development, use the standard swagger-ui-express setup
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+      customCss: '.swagger-ui .topbar { display: none }',
+      customSiteTitle: 'Auth API Documentation',
+      swaggerOptions: {
+        persistAuthorization: true,
+        displayRequestDuration: true
+      }
+    }));
+  }
+
   console.log(`📚 Swagger Docs available at ${baseUrl}/api-docs`);
 };
 
