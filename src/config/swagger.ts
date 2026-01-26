@@ -239,7 +239,7 @@ export const setupSwagger = (app: Application): void => {
   <script>
     window.onload = function() {
       const ui = SwaggerUIBundle({
-        url: '${baseUrl}/api-docs/swagger.json',
+        url: '/api-docs/swagger.json',
         dom_id: '#swagger-ui',
         presets: [
           SwaggerUIBundle.presets.apis,
