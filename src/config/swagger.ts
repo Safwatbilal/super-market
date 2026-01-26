@@ -6,13 +6,13 @@ import { Application } from 'express';
 const isProduction = process.env.NODE_ENV === 'production';
 const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL_URL;
 
-// ✅ استيراد التوثيق مباشرة بدلاً من المسح الديناميكي
+// ✅ Direct import of documentation instead of dynamic scanning
 const swaggerDefinition = {
   openapi: '3.0.0',
   info: {
     title: 'Auth API Documentation',
     version: '1.0.0',
-    description: 'نظام المصادقة والتحقق - Authentication System API',
+    description: 'Authentication and Verification System API',
     contact: {
       name: 'API Support',
       email: 'support@example.com'
@@ -30,14 +30,14 @@ const swaggerDefinition = {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        description: 'أدخل الـ JWT Token هنا'
+        description: 'Enter JWT Token here'
       }
     },
     schemas: {
       User: {
         type: 'object',
         properties: {
-          id: { type: 'string', description: 'معرف المستخدم' },
+          id: { type: 'string', description: 'User ID' },
           userType: { type: 'string', enum: ['customer', 'supermarket_owner'] },
           name: { type: 'string' },
           email: { type: 'string', format: 'email' },
@@ -88,7 +88,7 @@ const swaggerDefinition = {
         type: 'object',
         required: ['name', 'email', 'phone', 'password'],
         properties: {
-          name: { type: 'string', example: 'أحمد محمد' },
+          name: { type: 'string', example: 'Ahmad Mohammad' },
           email: { type: 'string', example: 'ahmed@example.com' },
           phone: { type: 'string', example: '0599123456' },
           password: { type: 'string', minLength: 6, example: 'password123' }
@@ -98,16 +98,16 @@ const swaggerDefinition = {
         type: 'object',
         required: ['name', 'email', 'phone', 'password', 'supermarketName', 'longitude', 'latitude'],
         properties: {
-          name: { type: 'string', example: 'محمد علي' },
+          name: { type: 'string', example: 'Mohammad Ali' },
           email: { type: 'string', example: 'supermarket@example.com' },
           phone: { type: 'string', example: '0599123456' },
           password: { type: 'string', example: 'password123' },
-          supermarketName: { type: 'string', example: 'سوبرماركت الأمل' },
+          supermarketName: { type: 'string', example: 'Al-Amal Supermarket' },
           longitude: { type: 'number', example: 35.2137 },
           latitude: { type: 'number', example: 31.7683 },
-          address: { type: 'string', example: 'شارع الجامعة، نابلس' },
+          address: { type: 'string', example: 'University Street, Nablus' },
           businessLicense: { type: 'string', example: 'BL-12345' },
-          description: { type: 'string', example: 'سوبرماركت شامل' },
+          description: { type: 'string', example: 'Comprehensive supermarket' },
           image_url: { type: 'string', example: 'https://example.com/store.jpg' }
         }
       },
@@ -130,16 +130,16 @@ const swaggerDefinition = {
     }
   },
   tags: [
-    { name: 'Authentication', description: 'عمليات المصادقة والتحقق' },
-    { name: 'User', description: 'عمليات المستخدم' },
-    { name: 'Supermarket', description: 'عمليات السوبرماركت' },
-    { name: 'Admin', description: 'عمليات المدير' }
+    { name: 'Authentication', description: 'Authentication and verification operations' },
+    { name: 'User', description: 'User operations' },
+    { name: 'Supermarket', description: 'Supermarket operations' },
+    { name: 'Admin', description: 'Admin operations' }
   ],
-  // ✅ تعريف الـ endpoints مباشرة
+  // ✅ Direct endpoint definitions
   paths: {
     '/api/auth/register/customer': {
       post: {
-        summary: 'تسجيل عميل جديد',
+        summary: 'Register new customer',
         tags: ['Authentication'],
         requestBody: {
           required: true,
@@ -151,7 +151,7 @@ const swaggerDefinition = {
         },
         responses: {
           '201': {
-            description: 'تم التسجيل بنجاح',
+            description: 'Successfully registered',
             content: {
               'application/json': {
                 schema: {
@@ -173,7 +173,7 @@ const swaggerDefinition = {
             }
           },
           '400': {
-            description: 'خطأ في البيانات',
+            description: 'Invalid data',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/Error' }
@@ -185,7 +185,7 @@ const swaggerDefinition = {
     },
     '/api/auth/register/supermarket': {
       post: {
-        summary: 'تسجيل صاحب سوبرماركت',
+        summary: 'Register supermarket owner',
         tags: ['Authentication'],
         requestBody: {
           required: true,
@@ -197,7 +197,7 @@ const swaggerDefinition = {
         },
         responses: {
           '201': {
-            description: 'تم التسجيل بنجاح',
+            description: 'Successfully registered',
             content: {
               'application/json': {
                 schema: {
@@ -219,7 +219,7 @@ const swaggerDefinition = {
             }
           },
           '400': {
-            description: 'خطأ في البيانات',
+            description: 'Invalid data',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/Error' }
@@ -231,7 +231,7 @@ const swaggerDefinition = {
     },
     '/api/auth/login': {
       post: {
-        summary: 'تسجيل الدخول',
+        summary: 'User login',
         tags: ['Authentication'],
         requestBody: {
           required: true,
@@ -243,7 +243,7 @@ const swaggerDefinition = {
         },
         responses: {
           '200': {
-            description: 'تم تسجيل الدخول بنجاح',
+            description: 'Successfully logged in',
             content: {
               'application/json': {
                 schema: {
@@ -269,18 +269,18 @@ const swaggerDefinition = {
               }
             }
           },
-          '401': { description: 'بيانات اعتماد خاطئة' }
+          '401': { description: 'Invalid credentials' }
         }
       }
     },
     '/api/auth/me': {
       get: {
-        summary: 'الحصول على بيانات المستخدم الحالي',
+        summary: 'Get current user data',
         tags: ['User'],
         security: [{ bearerAuth: [] }],
         responses: {
           '200': {
-            description: 'بيانات المستخدم',
+            description: 'User data',
             content: {
               'application/json': {
                 schema: {
@@ -303,14 +303,14 @@ const swaggerDefinition = {
               }
             }
           },
-          '401': { description: 'غير مصرح' },
-          '404': { description: 'المستخدم غير موجود' }
+          '401': { description: 'Unauthorized' },
+          '404': { description: 'User not found' }
         }
       }
     },
     '/api/auth/update-password': {
       put: {
-        summary: 'تحديث كلمة المرور',
+        summary: 'Update password',
         tags: ['User'],
         security: [{ bearerAuth: [] }],
         requestBody: {
@@ -322,15 +322,15 @@ const swaggerDefinition = {
           }
         },
         responses: {
-          '200': { description: 'تم تحديث كلمة المرور بنجاح' },
-          '400': { description: 'بيانات غير صحيحة' },
-          '401': { description: 'كلمة المرور الحالية خاطئة' }
+          '200': { description: 'Password updated successfully' },
+          '400': { description: 'Invalid data' },
+          '401': { description: 'Current password is incorrect' }
         }
       }
     },
     '/api/auth/update-profile': {
       put: {
-        summary: 'تحديث الملف الشخصي',
+        summary: 'Update profile',
         tags: ['User'],
         security: [{ bearerAuth: [] }],
         requestBody: {
@@ -353,15 +353,15 @@ const swaggerDefinition = {
           }
         },
         responses: {
-          '200': { description: 'تم التحديث بنجاح' },
-          '401': { description: 'غير مصرح' },
-          '404': { description: 'المستخدم غير موجود' }
+          '200': { description: 'Updated successfully' },
+          '401': { description: 'Unauthorized' },
+          '404': { description: 'User not found' }
         }
       }
     },
     '/api/auth/refresh-token': {
       post: {
-        summary: 'تحديث رمز الوصول',
+        summary: 'Refresh access token',
         tags: ['Authentication'],
         requestBody: {
           required: true,
@@ -379,7 +379,7 @@ const swaggerDefinition = {
         },
         responses: {
           '200': {
-            description: 'تم التحديث بنجاح',
+            description: 'Token refreshed successfully',
             content: {
               'application/json': {
                 schema: {
@@ -397,13 +397,13 @@ const swaggerDefinition = {
               }
             }
           },
-          '401': { description: 'رمز تحديث غير صالح' }
+          '401': { description: 'Invalid refresh token' }
         }
       }
     },
     '/api/auth/supermarkets/nearby': {
       get: {
-        summary: 'الحصول على السوبرماركت القريبة',
+        summary: 'Get nearby supermarkets',
         tags: ['Supermarket'],
         security: [{ bearerAuth: [] }],
         parameters: [
@@ -430,7 +430,7 @@ const swaggerDefinition = {
         ],
         responses: {
           '200': {
-            description: 'قائمة السوبرماركت القريبة',
+            description: 'List of nearby supermarkets',
             content: {
               'application/json': {
                 schema: {
@@ -452,18 +452,18 @@ const swaggerDefinition = {
               }
             }
           },
-          '400': { description: 'بيانات الموقع مفقودة' }
+          '400': { description: 'Location data missing' }
         }
       }
     },
     '/api/auth/admin-only': {
       get: {
-        summary: 'نقطة نهاية للمسؤولين فقط',
+        summary: 'Admin only endpoint',
         tags: ['Admin'],
         security: [{ bearerAuth: [] }],
         responses: {
-          '200': { description: 'نجح الوصول' },
-          '403': { description: 'ممنوع - المسؤولون فقط' }
+          '200': { description: 'Access granted' },
+          '403': { description: 'Forbidden - Admins only' }
         }
       }
     }
@@ -493,7 +493,7 @@ export const setupSwagger = (app: Application): void => {
       
       const html = `
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <title>Auth API Documentation</title>
