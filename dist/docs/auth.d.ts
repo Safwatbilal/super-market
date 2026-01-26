@@ -1,39 +1,153 @@
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     RegisterCustomerRequest:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - phone
+ *         - password
+ *       properties:
+ *         name:
+ *           type: string
+ *           example: "أحمد محمد"
+ *         email:
+ *           type: string
+ *           format: email
+ *           example: "ahmed@example.com"
+ *         phone:
+ *           type: string
+ *           example: "0599123456"
+ *         password:
+ *           type: string
+ *           format: password
+ *           minLength: 6
+ *           example: "password123"
+ *
+ *     RegisterSupermarketRequest:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - phone
+ *         - password
+ *         - supermarketName
+ *         - longitude
+ *         - latitude
+ *       properties:
+ *         name:
+ *           type: string
+ *           example: "محمد علي"
+ *         email:
+ *           type: string
+ *           example: "supermarket@example.com"
+ *         phone:
+ *           type: string
+ *           example: "0599123456"
+ *         password:
+ *           type: string
+ *           minLength: 6
+ *           example: "password123"
+ *         supermarketName:
+ *           type: string
+ *           example: "سوبرماركت الأمل"
+ *         longitude:
+ *           type: number
+ *           example: 35.2137
+ *         latitude:
+ *           type: number
+ *           example: 31.7683
+ *         address:
+ *           type: string
+ *           example: "شارع الجامعة، نابلس"
+ *         businessLicense:
+ *           type: string
+ *           example: "BL-12345"
+ *         description:
+ *           type: string
+ *           example: "سوبرماركت شامل يقدم جميع المنتجات الغذائية"
+ *         image_url:
+ *           type: string
+ *           example: "https://example.com/store.jpg"
+ *
+ *     LoginRequest:
+ *       type: object
+ *       required:
+ *         - emailOrPhone
+ *         - password
+ *       properties:
+ *         emailOrPhone:
+ *           type: string
+ *           example: "ahmed@example.com"
+ *         password:
+ *           type: string
+ *           example: "password123"
+ *
+ *     UpdatePasswordRequest:
+ *       type: object
+ *       required:
+ *         - currentPassword
+ *         - newPassword
+ *       properties:
+ *         currentPassword:
+ *           type: string
+ *           example: "oldPassword123"
+ *         newPassword:
+ *           type: string
+ *           minLength: 6
+ *           example: "newPassword123"
+ *
+ *     UpdateProfileRequest:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           example: "أحمد محمد الجديد"
+ *         phone:
+ *           type: string
+ *           example: "0598765432"
+ *         supermarketName:
+ *           type: string
+ *           example: "سوبرماركت الأمل الجديد"
+ *         longitude:
+ *           type: number
+ *           example: 35.2140
+ *         latitude:
+ *           type: number
+ *           example: 31.7690
+ *         address:
+ *           type: string
+ *           example: "شارع فيصل، نابلس"
+ *         description:
+ *           type: string
+ *           example: "وصف محدث للسوبرماركت"
+ *
+ *     RefreshTokenRequest:
+ *       type: object
+ *       required:
+ *         - refreshToken
+ *       properties:
+ *         refreshToken:
+ *           type: string
+ *           example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ */
+/**
+ * @swagger
  * /api/auth/register/customer:
  *   post:
- *     summary: Register a new customer
+ *     summary: تسجيل عميل جديد
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - name
- *               - email
- *               - phone
- *               - password
- *             properties:
- *               name:
- *                 type: string
- *                 example: John Doe
- *               email:
- *                 type: string
- *                 format: email
- *                 example: john@example.com
- *               phone:
- *                 type: string
- *                 example: "1234567890"
- *               password:
- *                 type: string
- *                 format: password
- *                 minLength: 6
- *                 example: password123
+ *             $ref: '#/components/schemas/RegisterCustomerRequest'
  *     responses:
  *       201:
- *         description: Customer registered successfully
+ *         description: تم التسجيل بنجاح
  *         content:
  *           application/json:
  *             schema:
@@ -44,7 +158,7 @@
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: Customer registered successfully
+ *                   example: "Customer registered successfully"
  *                 data:
  *                   type: object
  *                   properties:
@@ -55,7 +169,7 @@
  *                     refreshToken:
  *                       type: string
  *       400:
- *         description: Bad request
+ *         description: خطأ في البيانات المدخلة
  *         content:
  *           application/json:
  *             schema:
@@ -65,62 +179,17 @@
  * @swagger
  * /api/auth/register/supermarket:
  *   post:
- *     summary: Register a new supermarket owner
+ *     summary: تسجيل صاحب سوبرماركت
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - name
- *               - email
- *               - phone
- *               - password
- *               - supermarketName
- *               - longitude
- *               - latitude
- *             properties:
- *               name:
- *                 type: string
- *                 example: Ahmed Ali
- *               image_url:
- *                 type: string
- *                 example: https://example.com/image.jpg
- *               email:
- *                 type: string
- *                 format: email
- *                 example: ahmed@supermarket.com
- *               phone:
- *                 type: string
- *                 example: "9876543210"
- *               password:
- *                 type: string
- *                 format: password
- *                 minLength: 6
- *                 example: password123
- *               supermarketName:
- *                 type: string
- *                 example: Ahmed's Fresh Market
- *               longitude:
- *                 type: number
- *                 example: 35.2137
- *               latitude:
- *                 type: number
- *                 example: 31.7683
- *               address:
- *                 type: string
- *                 example: 123 Main Street, Amman, Jordan
- *               businessLicense:
- *                 type: string
- *                 example: BL-2024-12345
- *               description:
- *                 type: string
- *                 example: Fresh vegetables and groceries
+ *             $ref: '#/components/schemas/RegisterSupermarketRequest'
  *     responses:
  *       201:
- *         description: Supermarket owner registered successfully
+ *         description: تم التسجيل بنجاح
  *         content:
  *           application/json:
  *             schema:
@@ -140,7 +209,7 @@
  *                     refreshToken:
  *                       type: string
  *       400:
- *         description: Bad request
+ *         description: خطأ في البيانات
  *         content:
  *           application/json:
  *             schema:
@@ -150,29 +219,17 @@
  * @swagger
  * /api/auth/login:
  *   post:
- *     summary: Login (for both customers and supermarket owners)
+ *     summary: تسجيل الدخول
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - emailOrPhone
- *               - password
- *             properties:
- *               emailOrPhone:
- *                 type: string
- *                 description: Email or phone number
- *                 example: john@example.com
- *               password:
- *                 type: string
- *                 format: password
- *                 example: password123
+ *             $ref: '#/components/schemas/LoginRequest'
  *     responses:
  *       200:
- *         description: Login successful
+ *         description: تم تسجيل الدخول بنجاح
  *         content:
  *           application/json:
  *             schema:
@@ -194,63 +251,19 @@
  *                     refreshToken:
  *                       type: string
  *       401:
- *         description: Invalid credentials
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-/**
- * @swagger
- * /api/auth/refresh-token:
- *   post:
- *     summary: Refresh access token
- *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - refreshToken
- *             properties:
- *               refreshToken:
- *                 type: string
- *                 description: Refresh token
- *     responses:
- *       200:
- *         description: Token refreshed successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: object
- *                   properties:
- *                     token:
- *                       type: string
- *       401:
- *         description: Invalid refresh token
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
+ *         description: بيانات اعتماد خاطئة
  */
 /**
  * @swagger
  * /api/auth/me:
  *   get:
- *     summary: Get current logged in user
+ *     summary: الحصول على بيانات المستخدم الحالي
  *     tags: [User]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: User data retrieved successfully
+ *         description: بيانات المستخدم
  *         content:
  *           application/json:
  *             schema:
@@ -266,17 +279,15 @@
  *                         - $ref: '#/components/schemas/User'
  *                         - $ref: '#/components/schemas/SupermarketOwner'
  *       401:
- *         description: Not authorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
+ *         description: غير مصرح
+ *       404:
+ *         description: المستخدم غير موجود
  */
 /**
  * @swagger
  * /api/auth/update-password:
  *   put:
- *     summary: Update password
+ *     summary: تحديث كلمة المرور
  *     tags: [User]
  *     security:
  *       - bearerAuth: []
@@ -285,44 +296,20 @@
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - currentPassword
- *               - newPassword
- *             properties:
- *               currentPassword:
- *                 type: string
- *                 format: password
- *                 example: password123
- *               newPassword:
- *                 type: string
- *                 format: password
- *                 minLength: 6
- *                 example: newpassword456
+ *             $ref: '#/components/schemas/UpdatePasswordRequest'
  *     responses:
  *       200:
- *         description: Password updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
+ *         description: تم تحديث كلمة المرور بنجاح
+ *       400:
+ *         description: بيانات غير صحيحة
  *       401:
- *         description: Current password is incorrect
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
+ *         description: كلمة المرور الحالية خاطئة
  */
 /**
  * @swagger
  * /api/auth/update-profile:
  *   put:
- *     summary: Update user profile
+ *     summary: تحديث الملف الشخصي
  *     tags: [User]
  *     security:
  *       - bearerAuth: []
@@ -331,37 +318,30 @@
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 example: John Updated
- *               phone:
- *                 type: string
- *                 example: "9999999999"
- *               supermarketName:
- *                 type: string
- *                 description: Only for supermarket owners
- *                 example: Ahmed's Premium Market
- *               longitude:
- *                 type: number
- *                 description: Only for supermarket owners
- *                 example: 35.2200
- *               latitude:
- *                 type: number
- *                 description: Only for supermarket owners
- *                 example: 31.7700
- *               address:
- *                 type: string
- *                 description: Only for supermarket owners
- *                 example: 456 New Street, Amman
- *               description:
- *                 type: string
- *                 description: Only for supermarket owners
- *                 example: Premium quality groceries
+ *             $ref: '#/components/schemas/UpdateProfileRequest'
  *     responses:
  *       200:
- *         description: Profile updated successfully
+ *         description: تم التحديث بنجاح
+ *       401:
+ *         description: غير مصرح
+ *       404:
+ *         description: المستخدم غير موجود
+ */
+/**
+ * @swagger
+ * /api/auth/refresh-token:
+ *   post:
+ *     summary: تحديث رمز الوصول
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RefreshTokenRequest'
+ *     responses:
+ *       200:
+ *         description: تم التحديث بنجاح
  *         content:
  *           application/json:
  *             schema:
@@ -369,22 +349,19 @@
  *               properties:
  *                 success:
  *                   type: boolean
- *                 message:
- *                   type: string
  *                 data:
  *                   type: object
+ *                   properties:
+ *                     token:
+ *                       type: string
  *       401:
- *         description: Not authorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
+ *         description: رمز تحديث غير صالح
  */
 /**
  * @swagger
  * /api/auth/supermarkets/nearby:
  *   get:
- *     summary: Get nearby supermarkets
+ *     summary: الحصول على السوبرماركت القريبة
  *     tags: [Supermarket]
  *     security:
  *       - bearerAuth: []
@@ -394,25 +371,25 @@
  *         required: true
  *         schema:
  *           type: number
- *         description: User's longitude
+ *         description: خط الطول
  *         example: 35.2137
  *       - in: query
  *         name: latitude
  *         required: true
  *         schema:
  *           type: number
- *         description: User's latitude
+ *         description: خط العرض
  *         example: 31.7683
  *       - in: query
  *         name: maxDistance
  *         schema:
  *           type: number
  *           default: 5000
- *         description: Maximum distance in meters
+ *         description: المسافة القصوى بالمتر
  *         example: 5000
  *     responses:
  *       200:
- *         description: List of nearby supermarkets
+ *         description: قائمة السوبرماركت القريبة
  *         content:
  *           application/json:
  *             schema:
@@ -430,38 +407,20 @@
  *                       items:
  *                         $ref: '#/components/schemas/SupermarketOwner'
  *       400:
- *         description: Missing required parameters
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
+ *         description: بيانات الموقع مفقودة
  */
 /**
  * @swagger
  * /api/auth/admin-only:
  *   get:
- *     summary: Admin only route (example)
+ *     summary: نقطة نهاية للمسؤولين فقط (مثال)
  *     tags: [Admin]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Welcome message for admin
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
+ *         description: نجح الوصول
  *       403:
- *         description: Insufficient permissions
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-export {};
+ *         description: ممنوع - المسؤولون فقط
+ */ 
 //# sourceMappingURL=auth.d.ts.map

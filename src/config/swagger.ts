@@ -41,17 +41,9 @@ const options: swaggerJsdoc.Options = {
       }
     },
     servers: [
-      ...(process.env.VERCEL_URL ? [{
-        url: `https://${process.env.VERCEL_URL}`,
-        description: 'Vercel Production Server'
-      }] : []),
-      ...(process.env.BASE_URL ? [{
-        url: process.env.BASE_URL,
-        description: 'Custom Base URL'
-      }] : []),
       {
-        url: process.env.BASE_URL || 'http://localhost:5000',
-        description: process.env.NODE_ENV === 'production' ? 'Production Server' : 'Development Server'
+        url: '/',
+        description: 'Current Server'
       }
     ],
     components: {
@@ -253,8 +245,8 @@ export const setupSwagger = (app: Application): void => {
     // ✅ Vercel setup with custom HTML
     app.get('/api-docs', (req, res) => {
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       
       const html = `
 <!DOCTYPE html>
@@ -275,7 +267,7 @@ export const setupSwagger = (app: Application): void => {
   <script>
     window.onload = function() {
       const ui = SwaggerUIBundle({
-        url: '${baseUrl}/api-docs/swagger.json',
+        url: '/api-docs/swagger.json',
         dom_id: '#swagger-ui',
         presets: [
           SwaggerUIBundle.presets.apis,
@@ -298,15 +290,15 @@ export const setupSwagger = (app: Application): void => {
     app.get('/api-docs/swagger.json', (req, res) => {
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       res.send(specs);
     });
 
     app.options('/api-docs/swagger.json', (req, res) => {
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       res.sendStatus(200);
     });
   } else {
