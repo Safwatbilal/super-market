@@ -18,21 +18,14 @@ const app: Application = express();
 connectDB();
 
 // Middleware
-// ✅ Fix: Configure helmet with CSP for Swagger
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
-        imgSrc: ["'self'", "data:", "https:"],
-        fontSrc: ["'self'", "data:"],
-        connectSrc: ["'self'", "https://unpkg.com"]
-      }
-    }
-  })
-);
+app.use(helmet()); // Security headers
+
+// ✅ Disable CSP for Swagger routes only
+app.use('/api-docs', (req, res, next) => {
+  res.removeHeader('Content-Security-Policy');
+  res.removeHeader('Content-Security-Policy-Report-Only');
+  next();
+});
 
 app.use(cors()); // Enable CORS
 app.use(express.json()); // Parse JSON bodies
