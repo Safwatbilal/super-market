@@ -2,6 +2,27 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { Application } from 'express';
+import path from 'path';
+
+const isProduction = process.env.NODE_ENV === 'production';
+const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL_URL;
+
+// ✅ حدد المسارات بناءً على البيئة
+const getApiPaths = () => {
+  if (isProduction || isVercel) {
+    // في Production، اقرأ من dist
+    return [
+      path.join(__dirname, '../docs/**/*.js'),
+      path.join(__dirname, '../routes/**/*.js'),
+    ];
+  } else {
+    // في Development، اقرأ من src
+    return [
+      './src/docs/**/*.ts',
+      './src/routes/**/*.ts',
+    ];
+  }
+};
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -145,6 +166,10 @@ const options: swaggerJsdoc.Options = {
               type: 'string',
               description: 'وصف السوبرماركت'
             },
+            image_url: {
+              type: 'string',
+              description: 'صورة السوبرماركت'
+            },
             role: {
               type: 'string',
               enum: ['user', 'admin'],
@@ -198,34 +223,34 @@ const options: swaggerJsdoc.Options = {
       }
     ]
   },
-  // ✅ مسارات متعددة للتأكد من قراءة الملفات
-  apis: [
-    './src/docs/**/*.ts',
-    './src/routes/**/*.ts',
-    './src/models/**/*.ts',
-    './dist/docs/**/*.js',
-    './dist/routes/**/*.js',
-    './dist/models/**/*.js'
-  ]
+  apis: getApiPaths()
 };
+
+console.log('🔍 Environment:', {
+  NODE_ENV: process.env.NODE_ENV,
+  isVercel,
+  isProduction,
+  __dirname,
+  apiPaths: getApiPaths()
+});
 
 const specs = swaggerJsdoc(options);
 
 // Debug logs
-console.log('🔍 Swagger loading from:', options.apis);
 console.log('📋 Found paths:', Object.keys((specs as any).paths || {}).length);
-if ((specs as any).paths) {
-  console.log('📄 Endpoints:', Object.keys((specs as any).paths));
+if ((specs as any).paths && Object.keys((specs as any).paths).length > 0) {
+  console.log('✅ Endpoints loaded:', Object.keys((specs as any).paths));
+} else {
+  console.warn('⚠️ No endpoints found! Check file paths.');
 }
 
 export const setupSwagger = (app: Application): void => {
-  const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL_URL;
-  
   const baseUrl = process.env.VERCEL_URL 
     ? `https://${process.env.VERCEL_URL}` 
     : process.env.BASE_URL || 'http://localhost:5000';
 
   if (isVercel) {
+    // ✅ Vercel setup with custom HTML
     app.get('/api-docs', (req, res) => {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -240,6 +265,7 @@ export const setupSwagger = (app: Application): void => {
   <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
   <style>
     .swagger-ui .topbar { display: none }
+    body { margin: 0; padding: 0; }
   </style>
 </head>
 <body>
@@ -249,7 +275,7 @@ export const setupSwagger = (app: Application): void => {
   <script>
     window.onload = function() {
       const ui = SwaggerUIBundle({
-        url: '/api-docs/swagger.json',
+        url: '${baseUrl}/api-docs/swagger.json',
         dom_id: '#swagger-ui',
         presets: [
           SwaggerUIBundle.presets.apis,
@@ -258,7 +284,8 @@ export const setupSwagger = (app: Application): void => {
         layout: "StandaloneLayout",
         deepLinking: true,
         persistAuthorization: true,
-        displayRequestDuration: true
+        displayRequestDuration: true,
+        tryItOutEnabled: true
       });
     };
   </script>
@@ -283,12 +310,14 @@ export const setupSwagger = (app: Application): void => {
       res.sendStatus(200);
     });
   } else {
+    // ✅ Local development setup
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
       customCss: '.swagger-ui .topbar { display: none }',
       customSiteTitle: 'Auth API Documentation',
       swaggerOptions: {
         persistAuthorization: true,
-        displayRequestDuration: true
+        displayRequestDuration: true,
+        tryItOutEnabled: true
       }
     }));
   }

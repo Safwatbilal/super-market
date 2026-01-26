@@ -6,19 +6,24 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.authorizeUserType = exports.authorize = exports.protect = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const users_1 = __importDefault(require("../models/users"));
+// Protect routes - verify JWT token
 const protect = async (req, res, next) => {
     try {
         let token;
+        // Extract token from Authorization header
         if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
             token = req.headers.authorization.split(' ')[1];
         }
+        // Check if token exists
         if (!token) {
             return res.status(401).json({
                 success: false,
                 message: 'Not authorized, please login'
             });
         }
+        // Verify token
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        // Find user by ID
         const user = await users_1.default.findById(decoded.id);
         if (!user) {
             return res.status(401).json({
@@ -26,12 +31,14 @@ const protect = async (req, res, next) => {
                 message: 'User not found'
             });
         }
+        // Check if user is active
         if (!user.isActive) {
             return res.status(401).json({
                 success: false,
                 message: 'Account is deactivated'
             });
         }
+        // Attach user info to request
         req.user = {
             id: user._id.toString(),
             role: user.role,
@@ -48,6 +55,7 @@ const protect = async (req, res, next) => {
     }
 };
 exports.protect = protect;
+// Authorize roles (admin, user, etc.)
 const authorize = (...roles) => {
     return (req, res, next) => {
         if (!req.user) {
@@ -66,6 +74,7 @@ const authorize = (...roles) => {
     };
 };
 exports.authorize = authorize;
+// Authorize user types (customer, supermarket_owner)
 const authorizeUserType = (...userTypes) => {
     return (req, res, next) => {
         if (!req.user) {

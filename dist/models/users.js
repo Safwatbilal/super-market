@@ -36,6 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// src/models/users.ts
 const mongoose_1 = __importStar(require("mongoose"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const userSchema = new mongoose_1.Schema({
@@ -90,6 +91,7 @@ const userSchema = new mongoose_1.Schema({
         type: Boolean,
         default: true
     },
+    // Supermarket owner specific fields
     supermarketName: {
         type: String,
         required: function () {
@@ -128,7 +130,9 @@ const userSchema = new mongoose_1.Schema({
 }, {
     timestamps: true
 });
+// Create geospatial index for location-based queries
 userSchema.index({ location: '2dsphere' });
+// Hash password before saving
 userSchema.pre('save', async function (next) {
     if (!this.isModified('password'))
         return next();
@@ -141,6 +145,7 @@ userSchema.pre('save', async function (next) {
         next(error);
     }
 });
+// Compare password method
 userSchema.methods.comparePassword = async function (candidatePassword) {
     try {
         return await bcryptjs_1.default.compare(candidatePassword, this.password);
