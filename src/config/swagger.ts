@@ -2,7 +2,6 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { Application } from 'express';
-import path from 'path';
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -199,13 +198,25 @@ const options: swaggerJsdoc.Options = {
       }
     ]
   },
-  apis: [path.join(__dirname, '../docs/**/*.ts')]
+  // ✅ مسارات متعددة للتأكد من قراءة الملفات
+  apis: [
+    './src/docs/**/*.ts',
+    './src/routes/**/*.ts',
+    './src/models/**/*.ts',
+    './dist/docs/**/*.js',
+    './dist/routes/**/*.js',
+    './dist/models/**/*.js'
+  ]
 };
 
 const specs = swaggerJsdoc(options);
 
-console.log('🔍 Swagger API paths:', options.apis);
-console.log('📋 Swagger specs paths:', Object.keys((specs as any).paths || {}));
+// Debug logs
+console.log('🔍 Swagger loading from:', options.apis);
+console.log('📋 Found paths:', Object.keys((specs as any).paths || {}).length);
+if ((specs as any).paths) {
+  console.log('📄 Endpoints:', Object.keys((specs as any).paths));
+}
 
 export const setupSwagger = (app: Application): void => {
   const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL_URL;
@@ -216,7 +227,6 @@ export const setupSwagger = (app: Application): void => {
 
   if (isVercel) {
     app.get('/api-docs', (req, res) => {
-      // ✅ إضافة CORS headers
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -258,7 +268,6 @@ export const setupSwagger = (app: Application): void => {
       res.send(html);
     });
 
-    // ✅ إضافة CORS headers لملف swagger.json
     app.get('/api-docs/swagger.json', (req, res) => {
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Access-Control-Allow-Origin', '*');
@@ -267,7 +276,6 @@ export const setupSwagger = (app: Application): void => {
       res.send(specs);
     });
 
-    // ✅ إضافة OPTIONS handler للـ preflight requests
     app.options('/api-docs/swagger.json', (req, res) => {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
