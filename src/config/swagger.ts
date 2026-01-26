@@ -199,18 +199,15 @@ const options: swaggerJsdoc.Options = {
       }
     ]
   },
-  // المسار الصحيح لملفات التوثيق
   apis: [path.join(__dirname, '../docs/**/*.ts')]
 };
 
 const specs = swaggerJsdoc(options);
 
-// Debug: Log the API paths being used
 console.log('🔍 Swagger API paths:', options.apis);
 console.log('📋 Swagger specs paths:', Object.keys((specs as any).paths || {}));
 
 export const setupSwagger = (app: Application): void => {
-  // Use CDN assets for Vercel serverless compatibility
   const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL_URL;
   
   const baseUrl = process.env.VERCEL_URL 
@@ -218,8 +215,12 @@ export const setupSwagger = (app: Application): void => {
     : process.env.BASE_URL || 'http://localhost:5000';
 
   if (isVercel) {
-    // For Vercel, serve Swagger UI using CDN assets to avoid static file serving issues
     app.get('/api-docs', (req, res) => {
+      // ✅ إضافة CORS headers
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      
       const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -257,13 +258,23 @@ export const setupSwagger = (app: Application): void => {
       res.send(html);
     });
 
-    // Serve the Swagger JSON spec
+    // ✅ إضافة CORS headers لملف swagger.json
     app.get('/api-docs/swagger.json', (req, res) => {
       res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
       res.send(specs);
     });
+
+    // ✅ إضافة OPTIONS handler للـ preflight requests
+    app.options('/api-docs/swagger.json', (req, res) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      res.sendStatus(200);
+    });
   } else {
-    // For local development, use the standard swagger-ui-express setup
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
       customCss: '.swagger-ui .topbar { display: none }',
       customSiteTitle: 'Auth API Documentation',
