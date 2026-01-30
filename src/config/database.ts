@@ -3,22 +3,14 @@ import mongoose from 'mongoose';
 
 const connectDB = async (): Promise<void> => {
   try {
-    // ✅ استخدم MONGO_URI من environment variables
-    const mongoURI = process.env.MONGO_URI;
-    
-    // ✅ تحقق إنو الـ URI موجود
+    const mongoURI = process.env.MONGO_URI
     if (!mongoURI) {
       throw new Error('MONGO_URI is not defined in environment variables');
     }
-
-    console.log('🔄 Connecting to MongoDB...');
-
-    // ✅ اتصل بدون options (Mongoose 6+ ما بتحتاج options)
     await mongoose.connect(mongoURI);
     
     console.log('✅ MongoDB connected successfully');
     console.log(`📦 Database: ${mongoose.connection.name}`);
-    console.log(`🌐 Host: ${mongoose.connection.host}`);
   } catch (error) {
     console.error('❌ Database connection error:', error);
     process.exit(1);
