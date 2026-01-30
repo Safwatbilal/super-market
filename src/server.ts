@@ -21,6 +21,14 @@ connectDB();
 
 // Middleware
 app.use(helmet()); // Security headers
+
+// ✅ Disable CSP for Swagger routes only
+app.use('/api-docs', (req, res, next) => {
+  res.removeHeader('Content-Security-Policy');
+  res.removeHeader('Content-Security-Policy-Report-Only');
+  next();
+});
+
 app.use(cors()); // Enable CORS
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies

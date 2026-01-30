@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// src/config/database.ts
 const mongoose_1 = __importDefault(require("mongoose"));
 const connectDB = async () => {
     try {
@@ -16,12 +17,15 @@ const connectDB = async () => {
         process.exit(1);
     }
 };
+// Handle disconnection
 mongoose_1.default.connection.on('disconnected', () => {
     console.log('⚠️ MongoDB disconnected');
 });
+// Handle reconnection
 mongoose_1.default.connection.on('reconnected', () => {
     console.log('✅ MongoDB reconnected');
 });
+// Handle connection error
 mongoose_1.default.connection.on('error', (error) => {
     console.error('❌ MongoDB error:', error);
 });
