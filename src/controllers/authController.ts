@@ -3,7 +3,6 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/users';
 
-// Generate JWT Token
 const generateToken = (userId: string): string => {
   return jwt.sign(
     { id: userId },
@@ -12,7 +11,6 @@ const generateToken = (userId: string): string => {
   );
 };
 
-// Generate Refresh Token
 const generateRefreshToken = (userId: string): string => {
   return jwt.sign(
     { id: userId },
@@ -21,101 +19,61 @@ const generateRefreshToken = (userId: string): string => {
   );
 };
 
-// Register Customer
-export const registerCustomer = async (req: Request, res: Response) => {
-  try {
-    const { name, email, phone, password } = req.body;
-
-    // Validate required fields
-    if (!name || !email || !phone || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'All fields are required'
-      });
-    }
-
-    // Check if user exists
-    const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email or phone number already registered'
-      });
-    }
-
-    // Create customer
-    const user = await User.create({
-      userType: 'customer',
-      name,
-      email,
-      phone,
-      password
-    });
-
-    const token = generateToken(user._id.toString());
-    const refreshToken = generateRefreshToken(user._id.toString());
-
-    res.status(201).json({
-      success: true,
-      message: 'Customer registered successfully',
-      data: {
-        user: {
-          id: user._id,
-          userType: user.userType,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          role: user.role,
-          isVerified: user.isVerified
-        },
-        token,
-        refreshToken
-      }
-    });
-  } catch (error: any) {
-    console.error('Register Customer Error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error during registration',
-      error: error.message
-    });
-  }
-};
-
-// Register Supermarket Owner
-export const registerSupermarketOwner = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response) => {
   try {
     const { 
-      name, 
+      userType,
+      full_name,
       email, 
       phone, 
-      password, 
-      supermarketName, 
+      password,
+      confirm_password,
+      supermarket_name,
       longitude, 
       latitude, 
       address,
-      businessLicense,
-      description ,
-      image_url,
-
+      business_license,
+      description,
+      image_url
     } = req.body;
 
-    // Validate required fields
-    if (!name || !email || !phone || !password || !supermarketName) {
+    if (!userType || !['customer', 'supermarket_owner'].includes(userType)) {
       return res.status(400).json({
         success: false,
-        message: 'Name, email, phone, password, and supermarket name are required'
+        message: 'Valid user type is required (customer or supermarket_owner)'
       });
     }
 
-    if (!longitude || !latitude) {
+    if (!full_name || !email || !phone || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Location coordinates (longitude and latitude) are required'
+        message: 'Name, email, phone, and password are required'
       });
     }
 
-    // Check if user exists
+    if (password !== confirm_password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Passwords do not match'
+      });
+    }
+
+    if (userType === 'supermarket_owner') {
+      if (!supermarket_name) {
+        return res.status(400).json({
+          success: false,
+          message: 'Supermarket name is required for supermarket owners'
+        });
+      }
+
+      if (!longitude || !latitude) {
+        return res.status(400).json({
+          success: false,
+          message: 'Location coordinates are required for supermarket owners'
+        });
+      }
+    }
+
     const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
     if (existingUser) {
       return res.status(400).json({
@@ -124,51 +82,60 @@ export const registerSupermarketOwner = async (req: Request, res: Response) => {
       });
     }
 
-    // Create supermarket owner
-    const user = await User.create({
-      userType: 'supermarket_owner',
-      name,
+    const userData: any = {
+      userType,
+      name: full_name,
       email,
       phone,
-      password,
-      supermarketName,
-      location: {
+      password
+    };
+
+    if (userType === 'supermarket_owner') {
+      userData.supermarketName = supermarket_name;
+      userData.location = {
         type: 'Point',
         coordinates: [parseFloat(longitude), parseFloat(latitude)],
         address
-      },
-      image_url,
-      businessLicense,
-      description
-    });
+      };
+      userData.image_url = image_url;
+      userData.businessLicense = business_license;
+      userData.description = description;
+    }
+
+    const user = await User.create(userData);
 
     const token = generateToken(user._id.toString());
     const refreshToken = generateRefreshToken(user._id.toString());
 
+    const responseData: any = {
+      id: user._id,
+      userType: user.userType,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      isVerified: user.isVerified
+    };
+
+    if (user.userType === 'supermarket_owner') {
+      responseData.supermarketName = user.supermarketName;
+      responseData.location = user.location;
+      responseData.businessLicense = user.businessLicense;
+      responseData.description = user.description;
+      responseData.image_url = user.image_url;
+    }
+
     res.status(201).json({
       success: true,
-      message: 'Supermarket owner registered successfully',
+      message: `${userType === 'customer' ? 'Customer' : 'Supermarket owner'} registered successfully`,
       data: {
-        user: {
-          id: user._id,
-          userType: user.userType,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          supermarketName: user.supermarketName,
-          location: user.location,
-          businessLicense: user.businessLicense,
-          description: user.description,
-          role: user.role,
-          isVerified: user.isVerified,
-          image_url: user.image_url,
-        },
+        user: responseData,
         token,
         refreshToken
       }
     });
   } catch (error: any) {
-    console.error('Register Supermarket Owner Error:', error);
+    console.error('Register Error:', error);
     res.status(500).json({
       success: false,
       message: 'Error during registration',
@@ -177,7 +144,6 @@ export const registerSupermarketOwner = async (req: Request, res: Response) => {
   }
 };
 
-// Login (works for both user types)
 export const login = async (req: Request, res: Response) => {
   try {
     const { emailOrPhone, password } = req.body;
@@ -189,7 +155,6 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    // Find user by email or phone
     const user = await User.findOne({
       $or: [{ email: emailOrPhone }, { phone: emailOrPhone }]
     }).select('+password');
@@ -201,7 +166,6 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    // Check if account is active
     if (!user.isActive) {
       return res.status(401).json({
         success: false,
@@ -209,7 +173,6 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    // Verify password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -221,7 +184,6 @@ export const login = async (req: Request, res: Response) => {
     const token = generateToken(user._id.toString());
     const refreshToken = generateRefreshToken(user._id.toString());
 
-    // Prepare user data based on user type
     const userData: any = {
       id: user._id,
       userType: user.userType,
@@ -232,7 +194,6 @@ export const login = async (req: Request, res: Response) => {
       isVerified: user.isVerified
     };
 
-    // Add supermarket specific data if applicable
     if (user.userType === 'supermarket_owner') {
       userData.supermarketName = user.supermarketName;
       userData.location = user.location;
@@ -260,7 +221,6 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-// Get current user
 export const getMe = async (req: Request, res: Response) => {
   try {
     const user = await User.findById(req.user?.id);
@@ -288,6 +248,7 @@ export const getMe = async (req: Request, res: Response) => {
       userData.location = user.location;
       userData.businessLicense = user.businessLicense;
       userData.description = user.description;
+      userData.image_url = user.image_url;
     }
 
     res.status(200).json({
@@ -303,7 +264,6 @@ export const getMe = async (req: Request, res: Response) => {
   }
 };
 
-// Update password
 export const updatePassword = async (req: Request, res: Response) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -347,7 +307,6 @@ export const updatePassword = async (req: Request, res: Response) => {
   }
 };
 
-// Update profile
 export const updateProfile = async (req: Request, res: Response) => {
   try {
     const user = await User.findById(req.user?.id);
@@ -360,16 +319,15 @@ export const updateProfile = async (req: Request, res: Response) => {
 
     const { name, phone } = req.body;
 
-    // Update common fields
     if (name) user.name = name;
     if (phone) user.phone = phone;
 
-    // Update supermarket specific fields
     if (user.userType === 'supermarket_owner') {
-      const { supermarketName, longitude, latitude, address, description } = req.body;
+      const { supermarketName, longitude, latitude, address, description, image_url } = req.body;
       
       if (supermarketName) user.supermarketName = supermarketName;
       if (description) user.description = description;
+      if (image_url) user.image_url = image_url;
       
       if (longitude && latitude) {
         user.location = {
@@ -396,7 +354,6 @@ export const updateProfile = async (req: Request, res: Response) => {
   }
 };
 
-// Refresh token
 export const refreshToken = async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body;
@@ -428,7 +385,6 @@ export const refreshToken = async (req: Request, res: Response) => {
   }
 };
 
-// Get nearby supermarkets (for customers)
 export const getNearbySupermarkets = async (req: Request, res: Response) => {
   try {
     const { longitude, latitude, maxDistance = 5000 } = req.query;

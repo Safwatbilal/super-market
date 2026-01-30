@@ -7,6 +7,8 @@ import morgan from 'morgan';
 import connectDB from './config/database';
 import { setupSwagger } from './config/swagger';
 import authRoutes from './routes/authRoutes';
+import categoryRoutes from './routes/categoryRoutes';
+import productsRoutes from './routes/productsRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -29,6 +31,8 @@ setupSwagger(app);
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/products', productsRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
