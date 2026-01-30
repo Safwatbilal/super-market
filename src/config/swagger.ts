@@ -202,32 +202,97 @@ const swaggerDefinition = {
   // ✅ Direct endpoint definitions - Combined from all docs
   paths: {
     // ========== AUTH ENDPOINTS ==========
-    '/api/auth/register/customer': {
+    '/api/auth/register': {
       post: {
-        summary: 'Register new customer',
+        summary: 'Register a new user (customer or supermarket owner)',
         tags: ['Authentication'],
         requestBody: {
           required: true,
           content: {
             'application/json': {
-              schema: { $ref: '#/components/schemas/RegisterCustomerRequest' }
+              schema: {
+                type: 'object',
+                required: ['userType', 'full_name', 'email', 'phone', 'password', 'confirm_password'],
+                properties: {
+                  userType: {
+                    type: 'string',
+                    enum: ['customer', 'supermarket_owner'],
+                    example: 'customer'
+                  },
+                  full_name: {
+                    type: 'string',
+                    example: 'John Doe'
+                  },
+                  email: {
+                    type: 'string',
+                    format: 'email',
+                    example: 'john@example.com'
+                  },
+                  phone: {
+                    type: 'string',
+                    example: '1234567890'
+                  },
+                  password: {
+                    type: 'string',
+                    format: 'password',
+                    minLength: 6,
+                    example: 'password123'
+                  },
+                  confirm_password: {
+                    type: 'string',
+                    format: 'password',
+                    example: 'password123'
+                  },
+                  supermarket_name: {
+                    type: 'string',
+                    description: 'Required if userType is supermarket_owner',
+                    example: "Ahmed's Fresh Market"
+                  },
+                  longitude: {
+                    type: 'number',
+                    description: 'Required if userType is supermarket_owner',
+                    example: 35.2137
+                  },
+                  latitude: {
+                    type: 'number',
+                    description: 'Required if userType is supermarket_owner',
+                    example: 31.7683
+                  },
+                  address: {
+                    type: 'string',
+                    example: '123 Main Street, Amman, Jordan'
+                  },
+                  business_license: {
+                    type: 'string',
+                    example: 'BL-2024-12345'
+                  },
+                  description: {
+                    type: 'string',
+                    example: 'Fresh vegetables and groceries'
+                  },
+                  image_url: {
+                    type: 'string',
+                    example: 'https://example.com/image.jpg'
+                  }
+                }
+              }
             }
           }
         },
         responses: {
           '201': {
-            description: 'Successfully registered',
+            description: 'User registered successfully',
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
                   properties: {
-                    success: { type: 'boolean' },
+                    success: { type: 'boolean', example: true },
                     message: { type: 'string' },
                     data: {
                       type: 'object',
                       properties: {
-                        user: { $ref: '#/components/schemas/User' },
+                        user: { type: 'object' },
                         token: { type: 'string' },
                         refreshToken: { type: 'string' }
                       }
@@ -238,53 +303,7 @@ const swaggerDefinition = {
             }
           },
           '400': {
-            description: 'Invalid data',
-            content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/Error' }
-              }
-            }
-          }
-        }
-      }
-    },
-    '/api/auth/register/supermarket': {
-      post: {
-        summary: 'Register supermarket owner',
-        tags: ['Authentication'],
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/RegisterSupermarketRequest' }
-            }
-          }
-        },
-        responses: {
-          '201': {
-            description: 'Successfully registered',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    success: { type: 'boolean' },
-                    message: { type: 'string' },
-                    data: {
-                      type: 'object',
-                      properties: {
-                        user: { $ref: '#/components/schemas/SupermarketOwner' },
-                        token: { type: 'string' },
-                        refreshToken: { type: 'string' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          '400': {
-            description: 'Invalid data',
+            description: 'Bad request',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/Error' }
@@ -296,19 +315,33 @@ const swaggerDefinition = {
     },
     '/api/auth/login': {
       post: {
-        summary: 'User login',
+        summary: 'Login',
         tags: ['Authentication'],
         requestBody: {
           required: true,
           content: {
             'application/json': {
-              schema: { $ref: '#/components/schemas/LoginRequest' }
+              schema: {
+                type: 'object',
+                required: ['emailOrPhone', 'password'],
+                properties: {
+                  emailOrPhone: {
+                    type: 'string',
+                    example: 'john@example.com'
+                  },
+                  password: {
+                    type: 'string',
+                    format: 'password',
+                    example: 'password123'
+                  }
+                }
+              }
             }
           }
         },
         responses: {
           '200': {
-            description: 'Successfully logged in',
+            description: 'Login successful',
             content: {
               'application/json': {
                 schema: {
@@ -319,12 +352,7 @@ const swaggerDefinition = {
                     data: {
                       type: 'object',
                       properties: {
-                        user: {
-                          oneOf: [
-                            { $ref: '#/components/schemas/User' },
-                            { $ref: '#/components/schemas/SupermarketOwner' }
-                          ]
-                        },
+                        user: { type: 'object' },
                         token: { type: 'string' },
                         refreshToken: { type: 'string' }
                       }
@@ -340,12 +368,12 @@ const swaggerDefinition = {
     },
     '/api/auth/me': {
       get: {
-        summary: 'Get current user data',
+        summary: 'Get current logged in user',
         tags: ['User'],
         security: [{ bearerAuth: [] }],
         responses: {
           '200': {
-            description: 'User data',
+            description: 'User data retrieved successfully',
             content: {
               'application/json': {
                 schema: {
@@ -355,12 +383,7 @@ const swaggerDefinition = {
                     data: {
                       type: 'object',
                       properties: {
-                        user: {
-                          oneOf: [
-                            { $ref: '#/components/schemas/User' },
-                            { $ref: '#/components/schemas/SupermarketOwner' }
-                          ]
-                        }
+                        user: { type: 'object' }
                       }
                     }
                   }
@@ -368,8 +391,7 @@ const swaggerDefinition = {
               }
             }
           },
-          '401': { description: 'Unauthorized' },
-          '404': { description: 'User not found' }
+          '401': { description: 'Not authorized' }
         }
       }
     },
@@ -382,34 +404,58 @@ const swaggerDefinition = {
           required: true,
           content: {
             'application/json': {
-              schema: { $ref: '#/components/schemas/UpdatePasswordRequest' }
+              schema: {
+                type: 'object',
+                required: ['currentPassword', 'newPassword'],
+                properties: {
+                  currentPassword: {
+                    type: 'string',
+                    format: 'password'
+                  },
+                  newPassword: {
+                    type: 'string',
+                    format: 'password',
+                    minLength: 6
+                  }
+                }
+              }
             }
           }
         },
         responses: {
           '200': { description: 'Password updated successfully' },
-          '400': { description: 'Invalid data' },
           '401': { description: 'Current password is incorrect' }
         }
       }
     },
     '/api/auth/update-profile': {
       put: {
-        summary: 'Update profile',
+        summary: 'Update user profile',
         tags: ['User'],
         security: [{ bearerAuth: [] }],
         requestBody: {
           required: true,
           content: {
             'application/json': {
-              schema: { $ref: '#/components/schemas/UpdateProfileRequest' }
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  phone: { type: 'string' },
+                  supermarketName: { type: 'string' },
+                  longitude: { type: 'number' },
+                  latitude: { type: 'number' },
+                  address: { type: 'string' },
+                  description: { type: 'string' },
+                  image_url: { type: 'string' }
+                }
+              }
             }
           }
         },
         responses: {
-          '200': { description: 'Updated successfully' },
-          '401': { description: 'Unauthorized' },
-          '404': { description: 'User not found' }
+          '200': { description: 'Profile updated successfully' },
+          '401': { description: 'Not authorized' }
         }
       }
     },
@@ -459,21 +505,18 @@ const swaggerDefinition = {
             in: 'query',
             name: 'longitude',
             required: true,
-            schema: { type: 'number' },
-            example: 35.2137
+            schema: { type: 'number' }
           },
           {
             in: 'query',
             name: 'latitude',
             required: true,
-            schema: { type: 'number' },
-            example: 31.7683
+            schema: { type: 'number' }
           },
           {
             in: 'query',
             name: 'maxDistance',
-            schema: { type: 'number', default: 5000 },
-            example: 5000
+            schema: { type: 'number', default: 5000 }
           }
         ],
         responses: {
@@ -491,7 +534,7 @@ const swaggerDefinition = {
                       properties: {
                         supermarkets: {
                           type: 'array',
-                          items: { $ref: '#/components/schemas/SupermarketOwner' }
+                          items: { type: 'object' }
                         }
                       }
                     }
@@ -500,7 +543,7 @@ const swaggerDefinition = {
               }
             }
           },
-          '400': { description: 'Location data missing' }
+          '400': { description: 'Missing required parameters' }
         }
       }
     },
