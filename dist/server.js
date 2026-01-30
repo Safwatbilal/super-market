@@ -12,6 +12,8 @@ const morgan_1 = __importDefault(require("morgan"));
 const database_1 = __importDefault(require("./config/database"));
 const swagger_1 = require("./config/swagger");
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
+const categoryRoutes_1 = __importDefault(require("./routes/categoryRoutes"));
+const productsRoutes_1 = __importDefault(require("./routes/productsRoutes"));
 // Load environment variables
 dotenv_1.default.config();
 // Initialize express app
@@ -34,6 +36,8 @@ app.use((0, morgan_1.default)('dev')); // Logging
 (0, swagger_1.setupSwagger)(app);
 // Routes
 app.use('/api/auth', authRoutes_1.default);
+app.use('/api/categories', categoryRoutes_1.default);
+app.use('/api/products', productsRoutes_1.default);
 // Health check route
 app.get('/health', (req, res) => {
     res.status(200).json({

@@ -137,7 +137,7 @@
  */
 /**
  * @swagger
- * /api/auth/register/customer:
+ * /api/auth/register:
  *   post:
  *     summary: تسجيل عميل جديد
  *     tags: [Authentication]
@@ -199,13 +199,14 @@
  *               properties:
  *                 success:
  *                   type: boolean
+ *                   example: true
  *                 message:
  *                   type: string
  *                 data:
  *                   type: object
  *                   properties:
  *                     user:
- *                       $ref: '#/components/schemas/SupermarketOwner'
+ *                       type: object
  *                     token:
  *                       type: string
  *                     refreshToken:

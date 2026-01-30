@@ -7,10 +7,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const connectDB = async () => {
     try {
-        const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/marketplace-db';
+        // ✅ استخدم MONGO_URI من environment variables
+        const mongoURI = process.env.MONGO_URI;
+        // ✅ تحقق إنو الـ URI موجود
+        if (!mongoURI) {
+            throw new Error('MONGO_URI is not defined in environment variables');
+        }
+        console.log('🔄 Connecting to MongoDB...');
+        // ✅ اتصل بدون options (Mongoose 6+ ما بتحتاج options)
         await mongoose_1.default.connect(mongoURI);
         console.log('✅ MongoDB connected successfully');
         console.log(`📦 Database: ${mongoose_1.default.connection.name}`);
+        console.log(`🌐 Host: ${mongoose_1.default.connection.host}`);
     }
     catch (error) {
         console.error('❌ Database connection error:', error);
